@@ -5,52 +5,47 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let activities = [];
+// In-memory store
+let store = {
+  entries: [],
+  mealLog: {},
+  planChecked: {},
+  workoutDraft: null,
+};
 
+// Health check
 app.get("/", (req, res) => {
   res.json({ status: "Fitness backend is running! 💪" });
 });
 
-app.post("/garmin/webhook", (req, res) => {
-  console.log("Received Garmin data:", req.body);
-  const data = req.body;
-  if (data.type === "verification") {
-    return res.json({ challenge: data.challenge });
-  }
-  if (data.activities) {
-    data.activities.forEach(activity => {
-      activities.push({
-        id: Date.now(),
-        source: "garmin",
-        activityType: activity.activityType || "Other",
-        date: activity.startTimeLocal?.slice(0, 10) || new Date().toISOString().slice(0, 10),
-        duration: Math.round((activity.duration || 0) / 60),
-        distance: activity.distance ? (activity.distance / 1000).toFixed(2) : null,
-        distUnit: "km",
-        heartRate: activity.averageHR || null,
-        calories: activity.calories || null,
-        notes: "Auto-synced from Garmin ⌚",
-        emoji: getEmoji(activity.activityType),
-      });
-    });
-  }
-  res.json({ status: "ok" });
+// Get all data
+app.get("/data", (req, res) => {
+  res.json(store);
 });
 
-app.get("/activities", (req, res) => {
-  res.json(activities);
+// Save entries
+app.post("/entries", (req, res) => {
+  store.entries = req.body.entries;
+  res.json({ ok: true });
 });
 
-function getEmoji(type) {
-  const map = {
-    "running": "🏃‍♀️",
-    "walking": "🚶‍♀️",
-    "swimming": "🏊‍♀️",
-    "cycling": "🚴‍♀️",
-    "other": "⚡",
-  };
-  return map[(type || "").toLowerCase()] || "⚡";
-}
+// Save meal log
+app.post("/meallog", (req, res) => {
+  store.mealLog = req.body.mealLog;
+  res.json({ ok: true });
+});
+
+// Save plan checked
+app.post("/planchecked", (req, res) => {
+  store.planChecked = req.body.planChecked;
+  res.json({ ok: true });
+});
+
+// Save workout draft
+app.post("/draft", (req, res) => {
+  store.workoutDraft = req.body.draft;
+  res.json({ ok: true });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
