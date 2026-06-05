@@ -41,6 +41,8 @@ app.post("/draft", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+app.post("/metrics", (req, res) => { store.metrics = req.body.metrics; res.json({ ok: true }); });
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
