@@ -10,7 +10,9 @@ let store = {
   mealLog: {},
   planChecked: {},
   workoutDraft: null,
+  metrics: [],
 };
+
 
 app.get("/", (req, res) => {
   res.json({ status: "Fitness backend is running! 💪" });
